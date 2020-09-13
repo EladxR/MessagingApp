@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog loadingBar;
 
+    private boolean welcomeOnlyOnce=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,13 +93,15 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }else{
             //first get data
-            FirebaseDatabase.getInstance().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
+            FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    username= String.valueOf(dataSnapshot.child("Users").child((user.getUid())).child("username").getValue());
-                    if(dataSnapshot.child("Users").child((user.getUid())).child("username").exists() && !TextUtils.isEmpty(username)) {
+                    username= String.valueOf(dataSnapshot.child("username").getValue());
+                    if(dataSnapshot.child("username").exists() && !TextUtils.isEmpty(username)) {
+                        if(!welcomeOnlyOnce)
                         //welcome toast
                         Toast.makeText(MainActivity.this, "Welcome " + username, Toast.LENGTH_LONG).show();
+                        welcomeOnlyOnce=true;
 
                     }else{ // no user name init-> to welcome activity
                         SendToWelcomeActivity();
@@ -105,14 +109,8 @@ public class MainActivity extends AppCompatActivity {
                         finish(); // so user will not be able to go back here
                     }
 
-                    // get LastGroupID
-                    if(dataSnapshot.child("Groups").child("MaxID").exists()) {
-                        MaxGroupID = (long) dataSnapshot.child("Groups").child("MaxID").getValue();
-                    }else MaxGroupID=-1; // first id is 0
-
                     // finished loading
                     loadingBar.dismiss();
-
 
                 }
 
@@ -216,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
             listViewChats.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    //open Messaging Activity with current contact
+                    //open Messaging Activity with current chat details
                     Intent toMessaging=new Intent(getBaseContext(),MessagingActivity.class);
                    // toMessaging.putExtra("ContactIndex",i);
                     String name= chats.get(i).getName();
@@ -261,8 +259,17 @@ public class MainActivity extends AppCompatActivity {
             mAuth.signOut();
             ToLoginActivity();
         }
+        if(item.getItemId()==R.id.editProfileOption){
+            ToEditProfileActivity();
+        }
 
         return true;
+    }
+
+    private void ToEditProfileActivity() {
+        Intent intent=new Intent(this,EditProfileActivity.class);
+        intent.putExtra("username",username);
+        startActivity(intent);
     }
 }
 
