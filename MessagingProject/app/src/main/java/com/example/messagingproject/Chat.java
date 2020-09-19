@@ -44,6 +44,10 @@ public class Chat {
         return image;
     }
 
+    public boolean isGroup() {
+        return isGroup;
+    }
+
     //public HashMap<String, Message> getChatHistory() {
       //  return chatHistory;
    // }

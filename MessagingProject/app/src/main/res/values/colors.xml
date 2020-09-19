@@ -5,5 +5,6 @@
     <color name="colorPrimaryLight">#CCCCF4</color>
     <color name="colorAccent">#0359DA</color>
     <color name="colorButton">#1C5F67</color>
-    <color name="colorBackgroundMyMessage">#D9ECD1</color>
+    <color name="colorBackgroundMyMessage">#DCF8C6</color>
+    <color name="colorChatBackground">#ECE5DD</color>
 </resources>

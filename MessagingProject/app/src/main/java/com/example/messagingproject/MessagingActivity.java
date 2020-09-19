@@ -55,6 +55,7 @@ public class MessagingActivity extends AppCompatActivity {
     private DatabaseReference groupChatRoot;
     private String groupPath="/Groups/";
     private String userChatPath="/Users/";
+    private String otherUserChatPath="/Users/";
     private FirebaseUser user;
     private String username,userID;
     private boolean isGroup;
@@ -62,20 +63,17 @@ public class MessagingActivity extends AppCompatActivity {
 
     public static MessagesAdapter messagesAdapter;
 
-    //@pre intent has extra ContactIndex
+    // @pre putExtra: ChatID ChatName
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messaging);
 
-        //find the contact for this chat
         Intent intent=getIntent();
-       // contactIndex=intent.getIntExtra("ContactIndex",0);
-       // chat=MainActivity.chats.get(contactIndex); // should never be null
 
         //get user
         user=FirebaseAuth.getInstance().getCurrentUser();
-        username= intent.getStringExtra("username");
+        username= MainActivity.username;
         userID=user.getUid();
 
         //get chat info
@@ -86,7 +84,8 @@ public class MessagingActivity extends AppCompatActivity {
 
         //init paths
         groupPath="/Groups/"+chatID+"/chatHistory/";
-        userChatPath="/Users/"+user.getUid()+"/Chats/"+chatID+"/chatHistory/";
+        userChatPath="/Users/"+userID+"/Chats/"+chatID+"/chatHistory/";
+        otherUserChatPath="/Users/"+chatID+"/Chats/"+userID+"/chatHistory/";
 
         //init chat class
         groupChatRoot=FirebaseDatabase.getInstance().getReference().child("Groups").child(chatID); // if not a group it will be null
@@ -133,36 +132,69 @@ public class MessagingActivity extends AppCompatActivity {
         }
         private void initAdapter(){
             //connect chatHistory to database - on change it wil be updated
-            groupChatRoot.child("chatHistory").addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    if(dataSnapshot.exists()){
-                        AddMessageToChatHistory(dataSnapshot);
+            if(isGroup) {
+                groupChatRoot.child("chatHistory").addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        if (dataSnapshot.exists()) {
+                            AddMessageToChatHistory(dataSnapshot);
+                        }
                     }
-                }
 
-                @Override
-                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    if(dataSnapshot.exists()){
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        if (dataSnapshot.exists()) {
+
+                        }
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
 
                     }
-                }
 
-                @Override
-                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
-                }
+                    }
 
-                @Override
-                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                }
+                    }
+                });
+            }else{ // it's a private chat
+                chatRoot.child("chatHistory").addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        if (dataSnapshot.exists()) {
+                            AddMessageToChatHistory(dataSnapshot);
+                        }
+                    }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        if (dataSnapshot.exists()) {
 
-                }
-            });
+                        }
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
         }
 
         private void AddMessageToChatHistory(DataSnapshot dataSnapshot) {
@@ -202,7 +234,6 @@ public class MessagingActivity extends AppCompatActivity {
             timeText.setText(msg.getTime());
             if(msg.getSenderUserID().equals(userID)) { // if i am the sender of this message
                 // set cardView to right side
-                Log.d("DebugSend", "got heree");
                 CardView cardView = view.findViewById(R.id.cardViewMessage);
                 ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) cardView.getLayoutParams();
                 params.endToEnd = R.id.parent_layout_message;
@@ -211,8 +242,14 @@ public class MessagingActivity extends AppCompatActivity {
                 //change color
                 cardView.setCardBackgroundColor(getResources().getColor(R.color.colorBackgroundMyMessage));
 
-
-
+                //no username needed
+                usernameText.setText("");
+                usernameText.setTextSize(1);
+            }
+            if(!isGroup){
+                //no username needed
+                usernameText.setText("");
+                usernameText.setTextSize(1);
             }
 
             return view;
@@ -243,11 +280,15 @@ public class MessagingActivity extends AppCompatActivity {
             String messageKey=chatRoot.child("chatHistory").push().getKey();
             //DatabaseReference messageKeyRef = chatRoot.child("chatHistory").child(messageKey);
             Map<String, Object> childUpdates = new HashMap<>();
+            // in groups chat history is saved only in Groups path. in private chats it saves in both users paths.
             if(isGroup) { // save in overall groups
                 childUpdates.put(groupPath + messageKey + "/", currMessage);
             }else {
                 // save in user's chats
                 childUpdates.put(userChatPath + messageKey + "/", currMessage);
+                //save in other's chats
+                childUpdates.put(otherUserChatPath + messageKey + "/", currMessage);
+
             }
             rootRef.updateChildren(childUpdates);
 

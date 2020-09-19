@@ -4,23 +4,44 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 // simple contact class
-public class Contact extends Chat implements Comparable<Contact>{
+public class Contact  implements Comparable<Contact>{
 
     private String phoneNumber="";
+    public String username;
+    public String profileImage;
 
+    public void setPhoneNumber() {
+    }
 
-    public void setPhoneNumber(String phoneNumber) {
+    public void setPhoneNumber(String phoneNumber,String username,String profileImage) {
         phoneNumber=phoneNumber.trim();
         this.phoneNumber = phoneNumber;
+        this.username=username;
+        this.profileImage=profileImage;
     }
 
     public String getPhoneNumber() {
         return phoneNumber;
     }
+    public String getUsername() {
+        return username;
+    }
+    public String getProfileImage() {
+        return profileImage;
+    }
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 
     @Override
     public int compareTo(Contact contact) {
-        return this.name.compareTo(contact.name);
+        return this.phoneNumber.compareTo(contact.phoneNumber);
     }
 
     // equal by phone number (name can be changed- want to enter the same chat even if the name edited somehow)

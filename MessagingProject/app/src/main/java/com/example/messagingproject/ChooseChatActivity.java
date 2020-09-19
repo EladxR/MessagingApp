@@ -1,9 +1,12 @@
 package com.example.messagingproject;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -15,16 +18,25 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,82 +44,88 @@ import java.util.HashMap;
 
 
 public class ChooseChatActivity extends AppCompatActivity {
-
+    ActionBar toolbar;
+    RecyclerView newChatRecyclerView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_chat);
 
-        int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-        if(permissionCheck== PackageManager.PERMISSION_GRANTED){
-            GetAllContacts();
-        }else{
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS},2); // ask permission for send SMS
-        }
+        newChatRecyclerView=findViewById(R.id.newChatRecyclerList);
+
+       // toolbar=this.getActionBar();
+        toolbar=this.getSupportActionBar();
+        toolbar.setDisplayHomeAsUpEnabled(true);
+        toolbar.setDisplayShowHomeEnabled(true);
+        toolbar.setTitle("Add Chat");
+
     }
 
-    private void GetAllContacts() {
-        ContentResolver contentResolver=getContentResolver();
-        Cursor cursor_contacts=contentResolver.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,null);
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        if(cursor_contacts.getCount()>0){ // if there are contacts
-            final ArrayList<Contact> contactList=new ArrayList<>();
+        //init recycler view
+        FirebaseRecyclerOptions<Contact> options=new FirebaseRecyclerOptions.Builder<Contact>()
+                .setQuery(FirebaseDatabase.getInstance().getReference().child("Users"), Contact.class)
+                .build();
 
-            while(cursor_contacts.moveToNext()) {
-                // init contact
-                Contact contact = new Contact();
-                String contactID = cursor_contacts.getString(cursor_contacts.getColumnIndex(ContactsContract.Contacts._ID));
-                contact.name = cursor_contacts.getString(cursor_contacts.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                contact.image = cursor_contacts.getString(cursor_contacts.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
+        FirebaseRecyclerAdapter<Contact,NewChatViewHolder> adapter=new FirebaseRecyclerAdapter<Contact, NewChatViewHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull NewChatViewHolder holder, final int position, @NonNull final Contact model) {
+                holder.name.setText(model.getUsername());
+                Picasso.get().load(model.getProfileImage()).placeholder(R.drawable.contact_image1).into(holder.profileImage);
 
-                //get phone number
-                int hasPhoneNumber = Integer.parseInt(cursor_contacts.getString(cursor_contacts.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
-                if (hasPhoneNumber > 0) {
-
-                    Cursor phoneCursor = contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI
-                            , null
-                            , ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?"
-                            , new String[]{contactID}
-                            , null);
-
-                    while (phoneCursor.moveToNext()) {
-                        String phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        //< set >
-                        contact.setPhoneNumber(phoneNumber); // actually just take the last phone number // to change.. ****************
-                        //</ set >
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        CreatePrivateChat(model.getUsername(),getRef(position).getKey()); // anyway create the private chat (even if it is already exist)
+                        ToMessagingActivity(model,getRef(position).getKey());
                     }
-                    phoneCursor.close();
-                }
-                contactList.add(contact);
+                });
             }
 
-            //sort contacts by name
-            Collections.sort(contactList);
+            @NonNull
+            @Override
+            public NewChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.contacts_layout, parent,false);
+                NewChatViewHolder viewHolder=new NewChatViewHolder(view);
 
-            ListView listViewContacts=findViewById(R.id.listViewContacts);
-            ChatAdapter adapter=new ChatAdapter(contactList,this);
-           // listViewContacts.setAdapter(adapter);
+                return viewHolder;
+            }
+        };
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        newChatRecyclerView.setLayoutManager(llm);
+        newChatRecyclerView.setAdapter(adapter);
 
-            listViewContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    // add contact to database (maybe change later to add only if message sent)
-                    if(!MainActivity.chats.contains(contactList.get(i))){ // add only if there is no previous chat
-                        MainActivity.chats.add(contactList.get(i));
-                        //save chats to database
-                        FirebaseDatabase.getInstance().getReference().child("Users").child("Chats").setValue(MainActivity.chats);
 
-                    }
-                    //open Messaging Activity with current contact
-                    Intent toMessaging=new Intent(getBaseContext(),MessagingActivity.class);
-                    toMessaging.putExtra("ContactIndex",MainActivity.chats.indexOf(contactList.get(i)));
-                    startActivity(toMessaging);
-                    finish();
-                }
-            });
+        adapter.startListening();
+
+
+
+    }
+
+    private void ToMessagingActivity(Contact model, String userID) {
+        Intent intent=new Intent(ChooseChatActivity.this,MessagingActivity.class);
+        intent.putExtra("ChatID",userID);
+        intent.putExtra("ChatName",model.getUsername());
+        startActivity(intent);
+        finish();
+    }
+
+    public static class NewChatViewHolder extends RecyclerView.ViewHolder{
+        TextView name;
+        ImageView profileImage;
+
+        public NewChatViewHolder(@NonNull View itemView) {
+            super(itemView);
+            name=itemView.findViewById(R.id.ContactName);
+            profileImage=itemView.findViewById(R.id.ContactImage);
         }
     }
+
+
 
     public void onCreateGroup(View v){
         AlertDialog.Builder builder=new AlertDialog.Builder(this,R.style.AlertDialog);
@@ -152,27 +170,27 @@ public class ChooseChatActivity extends AppCompatActivity {
         rootRef.child("Groups").child("MaxID").setValue(MainActivity.MaxGroupID);
 
         //chats is updated in onDataChange
+    }
 
+    private void CreatePrivateChat(String otherUsername,String otherUserID) {
+        String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        Chat privateChat=new Chat(otherUsername,otherUserID,false);
+        Chat otherPrivateChat=new Chat(MainActivity.username,userID,false); // username can be null in private chat
+        DatabaseReference rootRef= FirebaseDatabase.getInstance().getReference();
+        //update in other user
+        UpdateChatValues(otherUserID,userID,otherPrivateChat);
+        // update in this user
+        UpdateChatValues(userID,otherUserID,privateChat);
 
+        //chats is updated in onDataChange
+    }
+    private void UpdateChatValues(String thisUserID,String otherUserID, Chat chat){ // only update so it wont delete if already exist
+        DatabaseReference rootRef= FirebaseDatabase.getInstance().getReference();
+        rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("name").setValue(chat.getName());
+        rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("id").setValue(chat.getId());
+        rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("isGroup").setValue(chat.isGroup());
     }
 
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if(requestCode==0){
-            if(grantResults.length>=1 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-               // sendMessage();
-            }else{
-                Toast.makeText(this,"no permission",Toast.LENGTH_SHORT);
-            }
-        }else if(requestCode==2){
-            if(grantResults.length>=1 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                GetAllContacts();
-            }else{
-                Toast.makeText(this,"no permission",Toast.LENGTH_SHORT);
-            }
-        }
-    }
 }

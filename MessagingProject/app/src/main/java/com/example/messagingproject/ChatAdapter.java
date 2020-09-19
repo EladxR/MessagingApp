@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,7 +84,16 @@ public class ChatAdapter extends BaseAdapter {
        textView.setText(chats.get(i).getName());
 
        // default image
-       imageView.setImageResource(R.drawable.contact_image1);
+        String imageUrl=chats.get(i).getImage();
+        if(imageUrl==null) {
+            imageView.setImageResource(R.drawable.contact_image1);
+        }else{
+            try {
+                Picasso.get().load(imageUrl).into(imageView);
+            }catch (Exception e){
+                imageView.setImageResource(R.drawable.contact_image1); // anyway put this image
+            }
+        }
 
 
         return view;
