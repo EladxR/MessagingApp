@@ -1,2 +1,2 @@
 # MessagingApp
- Texting app with android studio
+ Texting app with android studio using firebase
