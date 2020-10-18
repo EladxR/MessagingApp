@@ -7,4 +7,5 @@
     <color name="colorButton">#1C5F67</color>
     <color name="colorBackgroundMyMessage">#DCF8C6</color>
     <color name="colorChatBackground">#ECE5DD</color>
+    <color name="black_overlay">#66000000</color>
 </resources>

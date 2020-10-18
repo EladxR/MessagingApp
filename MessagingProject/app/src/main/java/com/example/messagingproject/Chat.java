@@ -5,23 +5,26 @@ import java.util.HashMap;
 
 public class Chat {
     public String name="";
-  //  public HashMap<String,Message> chatHistory; // <sender ID, message data>
     public String id;
     public String image;
     public boolean isGroup;
+    public boolean isOtherDelete=false; //only relevant to private chat
 
     public Chat() {
-      //  chatHistory=new ArrayList<>();
     }
     public Chat(String name,String id,boolean isGroup){
-        this.name=name;
-        this.id=id;
-        this.isGroup=isGroup;
-      //  this.chatHistory=chatHistory;
+        this(name,id,isGroup,null,false);
+    }
+    public Chat(String name,String id,boolean isGroup,String image){
+        this(name,id,isGroup,image,false);
     }
 
-    public void setChatHistory(HashMap<String, Message> chatHistory) {
-      //  this.chatHistory = chatHistory;
+    public Chat(String name,String id,boolean isGroup,String image,boolean isOtherDelete) {
+        this.name = name;
+        this.id = id;
+        this.isGroup = isGroup;
+        this.image = image;
+        this.isOtherDelete=isOtherDelete;
     }
 
     public void setName(String name) {
@@ -48,6 +51,9 @@ public class Chat {
         return isGroup;
     }
 
+    public boolean isOtherDelete() {
+        return isOtherDelete;
+    }
     //public HashMap<String, Message> getChatHistory() {
       //  return chatHistory;
    // }

@@ -31,6 +31,7 @@ public class ChatAdapter extends BaseAdapter {
 
     Activity act;
     List<Chat> chats;
+    DatabaseReference usersRoot;
 
 
     public ChatAdapter(List<? extends Chat> contacts, Activity act){
@@ -38,6 +39,9 @@ public class ChatAdapter extends BaseAdapter {
         this.act=act;
         chats=new ArrayList<>();
        // chatsRoot= FirebaseDatabase.getInstance().getReference().child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Chats");
+
+        usersRoot=FirebaseDatabase.getInstance().getReference().child("Users");
+
     }
     public void UpdateChats(List<Chat> lst){
         chats=lst;
@@ -65,7 +69,7 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public View getView(final int i, View view, ViewGroup viewGroup) {
         view=act.getLayoutInflater().inflate(R.layout.contacts_layout,null);
-        ImageView imageView=(ImageView) view.findViewById(R.id.ContactImage);
+        final ImageView imageView=(ImageView) view.findViewById(R.id.ContactImage);
         TextView textView=(TextView)view.findViewById(R.id.ContactName);
 
        /* textView.setText(chats.get(i).getName());
@@ -84,15 +88,32 @@ public class ChatAdapter extends BaseAdapter {
        textView.setText(chats.get(i).getName());
 
        // default image
-        String imageUrl=chats.get(i).getImage();
+        final String imageUrl=chats.get(i).getImage();
         if(imageUrl==null) {
             imageView.setImageResource(R.drawable.contact_image1);
         }else{
             try {
-                Picasso.get().load(imageUrl).into(imageView);
+                Picasso.get().load(imageUrl).placeholder(R.drawable.contact_image1).into(imageView);
             }catch (Exception e){
                 imageView.setImageResource(R.drawable.contact_image1); // anyway put this image
             }
+        }
+        if(!chats.get(i).isGroup){ // if its private chat
+            // set image from user's info
+            DatabaseReference imageRef=usersRoot.child(chats.get(i).getId()).child("profileImage");
+            imageRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if(snapshot.exists()){
+                        Picasso.get().load((String) snapshot.getValue()).placeholder(R.drawable.contact_image1).into(imageView);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
         }
 
 

@@ -83,6 +83,7 @@ public class ChooseChatActivity extends AppCompatActivity {
                         ToMessagingActivity(model,getRef(position).getKey());
                     }
                 });
+
             }
 
             @NonNull
@@ -100,7 +101,7 @@ public class ChooseChatActivity extends AppCompatActivity {
         newChatRecyclerView.setAdapter(adapter);
 
 
-        adapter.startListening();
+       adapter.startListening();
 
 
 
@@ -172,11 +173,10 @@ public class ChooseChatActivity extends AppCompatActivity {
         //chats is updated in onDataChange
     }
 
-    private void CreatePrivateChat(String otherUsername,String otherUserID) {
+    public static void CreatePrivateChat(String otherUsername, String otherUserID) {
         String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
         Chat privateChat=new Chat(otherUsername,otherUserID,false);
-        Chat otherPrivateChat=new Chat(MainActivity.username,userID,false); // username can be null in private chat
-        DatabaseReference rootRef= FirebaseDatabase.getInstance().getReference();
+        Chat otherPrivateChat=new Chat(MainActivity.username,userID,false);
         //update in other user
         UpdateChatValues(otherUserID,userID,otherPrivateChat);
         // update in this user
@@ -184,13 +184,16 @@ public class ChooseChatActivity extends AppCompatActivity {
 
         //chats is updated in onDataChange
     }
-    private void UpdateChatValues(String thisUserID,String otherUserID, Chat chat){ // only update so it wont delete if already exist
+    public static void UpdateChatValues(String thisUserID,String otherUserID, Chat chat){ // only update so it wont delete if already exist
         DatabaseReference rootRef= FirebaseDatabase.getInstance().getReference();
         rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("name").setValue(chat.getName());
         rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("id").setValue(chat.getId());
         rootRef.child("Users").child(thisUserID).child("Chats").child(otherUserID).child("isGroup").setValue(chat.isGroup());
     }
 
+    @Override
+    public void onBackPressed() {
+        finish();
 
-
+    }
 }

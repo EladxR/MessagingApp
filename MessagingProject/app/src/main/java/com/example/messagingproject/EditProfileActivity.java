@@ -74,7 +74,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 if(dataSnapshot.exists()) {
                     String imageUrl = (String) dataSnapshot.getValue();
                     //from library - get image from url
-                    Picasso.get().load(imageUrl).into(profileImage);
+                    Picasso.get().load(imageUrl).placeholder(profileImage.getDrawable()).into(profileImage);
 
                 }
             }
@@ -99,41 +99,45 @@ public class EditProfileActivity extends AppCompatActivity {
      //               .start(EditProfileActivity.this);
      //   }
 
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-            Uri resultUri=result.getUri();
-            profileImage.setImageURI(resultUri);
-            //save image
-            StorageReference userProfileImageRef = profileImageRef.child(userID+".jpg");
-            userProfileImageRef.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                    if(task.isSuccessful()){
-                        task.getResult().getStorage().getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                final String imageUrl= task.getResult().toString();
-                                DatabaseReference userRoot=FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
-                                userRoot.child("profileImage").setValue(imageUrl).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()){
-                                            Toast.makeText(EditProfileActivity.this, "image uploaded", Toast.LENGTH_SHORT).show();
-                                        }else{
-                                            Toast.makeText(EditProfileActivity.this,"Error: "+task.getException().toString(),Toast.LENGTH_LONG).show();
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE ) {
+            if (data == null) {
+                Toast.makeText(this, "no image has been chosen", Toast.LENGTH_LONG).show();
+            } else {
+                CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                Uri resultUri = result.getUri();
+                profileImage.setImageURI(resultUri);
+                //save image
+                StorageReference userProfileImageRef = profileImageRef.child(userID + ".jpg");
+                userProfileImageRef.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            task.getResult().getStorage().getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Uri> task) {
+                                    final String imageUrl = task.getResult().toString();
+                                    DatabaseReference userRoot = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
+                                    userRoot.child("profileImage").setValue(imageUrl).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                Toast.makeText(EditProfileActivity.this, "image uploaded", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(EditProfileActivity.this, "Error: " + task.getException().toString(), Toast.LENGTH_LONG).show();
 
+                                            }
                                         }
-                                    }
-                                });
-                            }
-                        });
+                                    });
+                                }
+                            });
 
 
-                    }else{
-                        Toast.makeText(EditProfileActivity.this,"Error: "+task.getException().toString(),Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(EditProfileActivity.this, "Error: " + task.getException().toString(), Toast.LENGTH_LONG).show();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
     }

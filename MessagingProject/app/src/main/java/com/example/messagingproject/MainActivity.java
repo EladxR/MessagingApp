@@ -2,14 +2,13 @@ package com.example.messagingproject;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -24,7 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.FirebaseApp;
+import com.example.messagingproject.services.NotificationService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,10 +40,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private FirebaseUser user;
     public static String username; // changes on data change
+    public static String profileImage=null;
     private FirebaseAuth mAuth;
     public static List<Chat> chats;
+    private ListView listViewChats;
     public static MyReceiver smsReceiver;
-    public static Contact currContactOpen=null;
     public static long MaxGroupID;
 
     private ProgressDialog loadingBar;
@@ -52,11 +52,16 @@ public class MainActivity extends AppCompatActivity {
     private boolean welcomeOnlyOnce=false;
 
     public static ArrayList<Contact> allContacts;
+    public static ArrayList<Activity> chatActivities; // manage the opened messages activities
+    private boolean isInitChatActivities =false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("DebugMain","StartedMain");
+
+        chatActivities=new ArrayList<>();
 
        // int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS);
        // if(permissionCheck!= PackageManager.PERMISSION_GRANTED){
@@ -72,17 +77,19 @@ public class MainActivity extends AppCompatActivity {
         //init empty chats
         chats=new ArrayList<>();
 
+        listViewChats=findViewById(R.id.listViewChats);
+
         //set listView for the chats
        // UpdateChats();
 
         // receiver init
-        smsReceiver = new MyReceiver();
+       /* smsReceiver = new MyReceiver();
         smsReceiver.setActivityHandler(this);
         IntentFilter portIntentFilter = new IntentFilter("android.intent.action.DATA_SMS_RECEIVED");
         portIntentFilter.addDataAuthority("*", "9512");
         portIntentFilter.addDataScheme("sms");
         registerReceiver(smsReceiver, portIntentFilter);
-
+*/
         // get all contacts
      /*   int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
         if(permissionCheck== PackageManager.PERMISSION_GRANTED){
@@ -97,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+
         mAuth=FirebaseAuth.getInstance();
 
         user=mAuth.getCurrentUser();
-
 
         if(user==null){
             ToLoginActivity();
@@ -123,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
                         SendToWelcomeActivity();
                         loadingBar.dismiss();
                         finish(); // so user will not be able to go back here
+                    }
+                    if(dataSnapshot.child("profileImage").exists()){
+                        profileImage=String.valueOf(dataSnapshot.child("profileImage").getValue());
                     }
 
                     // finished loading
@@ -181,27 +191,6 @@ public class MainActivity extends AppCompatActivity {
             Collections.sort(contactList);
             allContacts=contactList;
 
-           /* ListView listViewContacts=findViewById(R.id.listViewContacts);
-            ChatAdapter adapter=new ChatAdapter(contactList,this);
-            // listViewContacts.setAdapter(adapter);
-
-            listViewContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    // add contact to database (maybe change later to add only if message sent)
-                    if(!MainActivity.chats.contains(contactList.get(i))){ // add only if there is no previous chat
-                        MainActivity.chats.add(contactList.get(i));
-                        //save chats to database
-                        FirebaseDatabase.getInstance().getReference().child("Users").child("Chats").setValue(MainActivity.chats);
-
-                    }
-                    //open Messaging Activity with current contact
-                    Intent toMessaging=new Intent(getBaseContext(),MessagingActivity.class);
-                    toMessaging.putExtra("ContactIndex",MainActivity.chats.indexOf(contactList.get(i)));
-                    startActivity(toMessaging);
-                    finish();
-                }
-            });*/
         }
     }
 
@@ -216,21 +205,7 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-   /* public void onReceiveMessage(String message, String phoneNum){
-        Log.d("DebugReceive",message);
-        Contact receivedContact = SearchByPhone(chats,phoneNum);
-
-        if(receivedContact!=null) {
-            receivedContact.chatHistory.add("1" + message); // first letter 1-> received message
-            try {
-                MessagingActivity.RefreshListViewMessaging(receivedContact);
-            }catch (NullPointerException e){
-                Log.d("DebugReceive","no contact open");
-            }
-        }
-    }
-
-
+  /*
     public static Contact SearchByPhone(ArrayList<Chat> chats, String phoneNum) {
         for (Chat c:chats) {
             if(PhoneNumberUtils.compare(c.getPhoneNumber(),phoneNum)) { // equal phone numbers by android package
@@ -246,20 +221,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void UpdateChats(){
-        // if there are bo previous chats
-        ListView listViewChats=findViewById(R.id.listViewChats);
-      /*  if(chats.size()==0){
-            listViewChats.setEnabled(false);
-            listViewChats.setVisibility(View.INVISIBLE);
-            TextView textNoChats=findViewById(R.id.TextNoChats);
-            textNoChats.setVisibility(View.VISIBLE);
-            textNoChats.setEnabled(true);
-        }else{*/
-            listViewChats.setEnabled(true);
-            listViewChats.setVisibility(View.VISIBLE);
-            TextView textNoChats=findViewById(R.id.TextNoChats);
-            textNoChats.setVisibility(View.INVISIBLE);
-            textNoChats.setEnabled(false);
+            SetToHasChats();
 
             final ChatAdapter adapter=new ChatAdapter(chats,this);
 
@@ -271,14 +233,43 @@ public class MainActivity extends AppCompatActivity {
 
                     List<Chat> chats=new ArrayList<>();
                     Iterator<DataSnapshot> iterator=dataSnapshot.getChildren().iterator();
-                    while(iterator.hasNext()){
-                        DataSnapshot chatData=iterator.next();
-                        Chat chat=chatData.getValue(Chat.class);
-                        chats.add(chat);
+                    while(iterator.hasNext()) {
+                        DataSnapshot chatData = iterator.next();
+                        final Chat chat = chatData.getValue(Chat.class);
+                        if (chat.getId() != null) { // happens when new chat added and data didn't fully changed (will call again when change is fully finished)
+                            chats.add(chat);
+
+                            if (chat.isGroup) {
+                                DatabaseReference groupRoot = FirebaseDatabase.getInstance().getReference().child("Groups").child(chat.getId());
+                                groupRoot.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        // set name and image of user's chat from group database
+                                        chat.setName((String) snapshot.child("name").getValue());
+                                        chat.setImage((String) snapshot.child("image").getValue());
+                                        DatabaseReference userGroupRoot = chatsRoot.child(chat.getId());
+                                        userGroupRoot.child("name").setValue(chat.getName());
+                                        userGroupRoot.child("image").setValue(chat.getImage());
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                        }
                     }
                     MainActivity.chats=chats;
                     adapter.UpdateChats(chats);
                     adapter.notifyDataSetChanged();
+                    if(chats.size()==0){
+                        SetToEmptyChats();
+                    }else{
+                        SetToHasChats();
+                    }
+                    //only works first time
+                    initChatActivities();
                 }
 
                 @Override
@@ -297,10 +288,102 @@ public class MainActivity extends AppCompatActivity {
                     String name= chats.get(i).getName();
                     toMessaging.putExtra("ChatName",name);
                     toMessaging.putExtra("ChatID",chats.get(i).getId());
+                    toMessaging.putExtra("chatIndex",i);
+                    toMessaging.putExtra("chatImage",chats.get(i).getImage());
                     startActivity(toMessaging);
                 }
             });
-       // }
+
+            listViewChats.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    ShowDialogToDeleteChat(chats.get(i).getId(),i,chats.get(i).isOtherDelete);
+                    return true;
+                }
+            });
+
+    }
+
+    private void initChatActivities() {
+        if(!isInitChatActivities){
+            isInitChatActivities =true;
+            for (int i = 0; i < chats.size(); i++) {
+                chatActivities.add(null);
+            }
+
+        }else{
+            if(chatActivities.size()!=chats.size()){ // someone send msg first time and new chat adds
+                int numberOfAddedChats=chats.size()-chatActivities.size();
+                for(int i=0;i<numberOfAddedChats;i++){
+                    chatActivities.add(null);
+                }
+            }
+        }
+    }
+
+    private void ShowDialogToDeleteChat(final String chatId, final int index, final boolean isOtherDelete) {
+        AlertDialog deleteDialog=new AlertDialog.Builder(this)
+                .setTitle("Delete Chat")
+                .setMessage("delete chat and all it's content?")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // delete the chat only from this user
+                        onDeleteChat(chatId,index,isOtherDelete);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .create();
+        deleteDialog.show();
+    }
+
+    private void onDeleteChat(String chatId, int index, boolean isOtherDelete) {
+        //remove in firebase (it will update the list view)
+        DatabaseReference chatRef=FirebaseDatabase.getInstance().getReference()
+                .child("Users").child(user.getUid()).child("Chats").child(chatId);
+        chatRef.removeValue();
+        if(!isOtherDelete) {
+            //set isOtherDelete only if the other user didn't delete you too
+            DatabaseReference otherChatRed = FirebaseDatabase.getInstance().getReference()
+                    .child("Users").child(chatId).child("Chats").child(user.getUid());
+            otherChatRed.child("isOtherDelete").setValue(true);
+        }
+
+        //finish the opened messaging activity of this chat (if opened)
+        if(chatActivities.get(index)!=null){
+            try {
+                chatActivities.get(index).finish();
+            }catch (Exception e){
+                Log.d("DebugTryCatch","failed to finish activity");
+            }finally {
+                // always execute
+                chatActivities.set(index,null);
+
+            }
+        }
+
+    }
+
+
+    private void SetToHasChats() {
+        listViewChats.setEnabled(true);
+        listViewChats.setVisibility(View.VISIBLE);
+        TextView textNoChats=findViewById(R.id.TextNoChats);
+        textNoChats.setVisibility(View.INVISIBLE);
+        textNoChats.setEnabled(false);
+    }
+
+    private void SetToEmptyChats() {
+        listViewChats.setEnabled(false);
+        listViewChats.setVisibility(View.INVISIBLE);
+        TextView textNoChats=findViewById(R.id.TextNoChats);
+        textNoChats.setVisibility(View.VISIBLE);
+        textNoChats.setEnabled(true);
     }
 
 

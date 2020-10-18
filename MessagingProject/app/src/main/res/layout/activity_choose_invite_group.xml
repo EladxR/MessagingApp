@@ -4,32 +4,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ChooseChatActivity">
+    tools:context=".ChooseInviteGroupActivity">
 
+    <TextView
+        android:id="@+id/textToInviteGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Choose users to invite to the group:"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="6dp"
+        />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/newChatRecyclerList"
+        android:id="@+id/usersRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnCreateGroup">
+        app:layout_constraintTop_toBottomOf="@+id/textToInviteGroup"
+        android:layout_marginTop="10dp">
 
     </androidx.recyclerview.widget.RecyclerView>
 
     <Button
-        android:id="@+id/btnCreateGroup"
+        android:id="@+id/btnSendInvitationGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:backgroundTint="@android:color/transparent"
-        android:onClick="onCreateGroup"
-        android:text="Create Group"
-        android:textColor="#090909"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        android:text="send"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:enabled="false"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

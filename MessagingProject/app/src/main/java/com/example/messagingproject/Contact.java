@@ -9,11 +9,20 @@ public class Contact  implements Comparable<Contact>{
     private String phoneNumber="";
     public String username;
     public String profileImage;
+    private boolean isChecked=false; // when need to check select contact
 
     public void setPhoneNumber() {
     }
 
-    public void setPhoneNumber(String phoneNumber,String username,String profileImage) {
+    public void setChecked(boolean checked) {
+        isChecked = checked;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setPhoneNumber(String phoneNumber, String username, String profileImage) {
         phoneNumber=phoneNumber.trim();
         this.phoneNumber = phoneNumber;
         this.username=username;

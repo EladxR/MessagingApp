@@ -17,6 +17,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseUser user;
@@ -79,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 loadingBar.dismiss();
                 if(task.isSuccessful()){
+                    SaveToken();
                     ToMainActivity();
                     finish();
                 }else{
@@ -89,6 +94,23 @@ public class LoginActivity extends AppCompatActivity {
 
 
     }
+
+    private void SaveToken() {
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+            @Override
+            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                if(task.isSuccessful()) {
+                    String deviceToken = task.getResult().getToken();
+                    user=mAuth.getCurrentUser();
+                    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid());
+                    userRef.child("deviceToken").setValue(deviceToken);
+                }else{
+                    Toast.makeText(LoginActivity.this,"error save token",Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
     public void onToRegister(View v){
         Intent intent=new Intent(this,RegisterActivity.class);
         startActivity(intent);

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item
+        android:title="Clear chat"
+        android:id="@+id/clearChatHistory"
+        app:showAsAction="never">
+    </item>
+
+    <item
+        android:title="Edit Group"
+        android:id="@+id/editGroup"
+        app:showAsAction="never">
+    </item>
+
+    <item
+        android:title="Invite to group"
+        android:id="@+id/inviteToGroup"
+        app:showAsAction="never">
+    </item>
+
+</menu>
