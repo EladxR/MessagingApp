@@ -16,7 +16,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Map;

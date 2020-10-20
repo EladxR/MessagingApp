@@ -3,33 +3,22 @@ package com.example.messagingproject;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -38,14 +27,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-
 
 public class ChooseChatActivity extends AppCompatActivity {
     ActionBar toolbar;
     RecyclerView newChatRecyclerView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,11 +39,8 @@ public class ChooseChatActivity extends AppCompatActivity {
 
         newChatRecyclerView=findViewById(R.id.newChatRecyclerList);
 
-       // toolbar=this.getActionBar();
-        toolbar=this.getSupportActionBar();
-        toolbar.setDisplayHomeAsUpEnabled(true);
-        toolbar.setDisplayShowHomeEnabled(true);
-        toolbar.setTitle("Add Chat");
+        // change Title
+        setTitle("Add Chat");
 
     }
 
@@ -159,8 +142,6 @@ public class ChooseChatActivity extends AppCompatActivity {
 
     private void CreateNewGroup(String groupName) {
         MainActivity.MaxGroupID++; // new group id
-       // HashMap<String,Message> chatHistory=new HashMap<>();
-     //   chatHistory.put(FirebaseAuth.getInstance().getCurrentUser().getUid(),new Message("I create this new group","firstSender")); // add first message by me
         Chat groupChat=new Chat(groupName,String.valueOf(MainActivity.MaxGroupID),true);
         DatabaseReference rootRef= FirebaseDatabase.getInstance().getReference();
         //update in all groups

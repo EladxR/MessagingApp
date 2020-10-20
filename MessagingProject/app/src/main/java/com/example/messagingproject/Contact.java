@@ -1,6 +1,5 @@
 package com.example.messagingproject;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 // simple contact class

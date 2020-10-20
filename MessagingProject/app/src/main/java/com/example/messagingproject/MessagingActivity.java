@@ -28,12 +28,9 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -44,7 +41,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -85,15 +81,13 @@ public class MessagingActivity extends AppCompatActivity {
     private Menu chatMenu;
 
 
-    // @pre putExtra: ChatID ChatName chatImage
+    /** @pre putExtra: ChatID ChatName chatImage */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messaging);
         //manage opened massaging activities
         MainActivity.chatActivities.set(getIntent().getIntExtra("chatIndex",0),this);
-        
-        SetLoadingImage();
 
         sendImageBtn=findViewById(R.id.sendImageBtn);
         inputText=findViewById(R.id.inputText);
@@ -196,7 +190,6 @@ public class MessagingActivity extends AppCompatActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                //only vertical scroll (dy)
                 // scroll to bottom will invisible new messages text
                 didScrolled = true;
                 int scrollPosition = recyclerLayoutManager.findLastVisibleItemPosition();
@@ -235,11 +228,6 @@ public class MessagingActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-
-    private void SetLoadingImage() {
-   //     Picasso.get().load(R.drawable.loading_image).resize(200,200).centerInside().into();
     }
 
     private void InitInputTextWatcher() {
@@ -293,9 +281,7 @@ public class MessagingActivity extends AppCompatActivity {
             holder.usernameText.setText(currMsg.getSenderUsername());
             //if its image message
             if(currMsg.getType()!=null && currMsg.getType().equals("image")){
-               // holder.imageMsg.setImageResource(R.drawable.loading_image);
                 final String imageUrl=currMsg.getImage();
-             //   Picasso.get().load(R.drawable.loading_image).resize(600,600).centerInside().into();
                 Picasso.get().load(imageUrl).resize(600,600).centerCrop().into(holder.imageMsg);
                 // on image click- Open image in view image fragment
                 holder.imageMsg.setOnClickListener(new View.OnClickListener() {
@@ -310,7 +296,6 @@ public class MessagingActivity extends AppCompatActivity {
                     }
                 });
             }else{
-               // holder.imageMsg.setVisibility(View.INVISIBLE);
                 Picasso.get().load(Uri.EMPTY).into(holder.imageMsg);
             }
 
@@ -479,7 +464,6 @@ public class MessagingActivity extends AppCompatActivity {
             currMessage.setType("message");
             DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
             String messageKey=chatRoot.child("chatHistory").push().getKey();
-            //DatabaseReference messageKeyRef = chatRoot.child("chatHistory").child(messageKey);
             Map<String, Object> childUpdates = new HashMap<>();
             // in groups chat history is saved only in Groups path. in private chats it saves in both users paths.
             if(isGroup) { // save in overall groups
@@ -514,14 +498,6 @@ public class MessagingActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //  if(requestCode==GalleryRequestCode && resultCode==RESULT_OK && data!=null){
-        //       Uri imageUri=data.getData();
-        //       CropImage.activity()
-        //               .setGuidelines(CropImageView.Guidelines.ON)
-        //               .setAspectRatio(1,1)
-        //               .start(EditProfileActivity.this);
-        //   }
-
         if (requestCode == GalleryRequestCode) {
             if (data == null) {
                 Toast.makeText(this, "no image has been chosen", Toast.LENGTH_LONG).show();
@@ -537,7 +513,6 @@ public class MessagingActivity extends AppCompatActivity {
     }
 
     private void SendImageMsg(Uri imageUri) {
-
         final Message currMessage=new Message("",username,userID);
         currMessage.setType("image");
         currMessageWithImageToSend=currMessage;

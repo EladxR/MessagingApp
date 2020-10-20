@@ -20,7 +20,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
-    private FirebaseUser user;
     private FirebaseAuth mAuth;
     private DatabaseReference rootRef;
     private EditText userEmail,userPassword,username;

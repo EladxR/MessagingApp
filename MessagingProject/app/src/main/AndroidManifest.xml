@@ -44,16 +44,6 @@
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
 
-        <receiver
-            android:name=".MyReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".MessagingActivity"
             android:launchMode="singleTop"

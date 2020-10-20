@@ -1,7 +1,5 @@
 package com.example.messagingproject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Chat {
     public String name="";
@@ -10,8 +8,7 @@ public class Chat {
     public boolean isGroup;
     public boolean isOtherDelete=false; //only relevant to private chat
 
-    public Chat() {
-    }
+    public Chat() { }
     public Chat(String name,String id,boolean isGroup){
         this(name,id,isGroup,null,false);
     }
@@ -54,7 +51,4 @@ public class Chat {
     public boolean isOtherDelete() {
         return isOtherDelete;
     }
-    //public HashMap<String, Message> getChatHistory() {
-      //  return chatHistory;
-   // }
 }

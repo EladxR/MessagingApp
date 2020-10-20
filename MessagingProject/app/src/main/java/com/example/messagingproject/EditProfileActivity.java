@@ -35,8 +35,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private StorageReference profileImageRef;
     private String userID;
 
-    private static final int GalleryRequestCode=1;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,10 +52,6 @@ public class EditProfileActivity extends AppCompatActivity {
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-             //   Intent galleryIntent= new Intent();
-             //   galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-              //  galleryIntent.setType("image/*");
-              //  startActivityForResult(galleryIntent,GalleryRequestCode);
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
                         .setAspectRatio(1,1)
@@ -90,14 +84,6 @@ public class EditProfileActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-      //  if(requestCode==GalleryRequestCode && resultCode==RESULT_OK && data!=null){
-     //       Uri imageUri=data.getData();
-     //       CropImage.activity()
-     //               .setGuidelines(CropImageView.Guidelines.ON)
-     //               .setAspectRatio(1,1)
-     //               .start(EditProfileActivity.this);
-     //   }
 
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE ) {
             if (data == null) {

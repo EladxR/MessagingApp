@@ -23,7 +23,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.messagingproject.services.NotificationService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -44,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     public static List<Chat> chats;
     private ListView listViewChats;
-    public static MyReceiver smsReceiver;
     public static long MaxGroupID;
 
     private ProgressDialog loadingBar;
@@ -63,11 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
         chatActivities=new ArrayList<>();
 
-       // int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS);
-       // if(permissionCheck!= PackageManager.PERMISSION_GRANTED){
-      //      ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECEIVE_SMS},3); // ask permission for send SMS
-      //  }
-      //  Log.d("Debug","permission: "+permissionCheck);
 
         loadingBar=new ProgressDialog(this);
         loadingBar.setTitle("Logging in..");
@@ -79,24 +72,6 @@ public class MainActivity extends AppCompatActivity {
 
         listViewChats=findViewById(R.id.listViewChats);
 
-        //set listView for the chats
-       // UpdateChats();
-
-        // receiver init
-       /* smsReceiver = new MyReceiver();
-        smsReceiver.setActivityHandler(this);
-        IntentFilter portIntentFilter = new IntentFilter("android.intent.action.DATA_SMS_RECEIVED");
-        portIntentFilter.addDataAuthority("*", "9512");
-        portIntentFilter.addDataScheme("sms");
-        registerReceiver(smsReceiver, portIntentFilter);
-*/
-        // get all contacts
-     /*   int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-        if(permissionCheck== PackageManager.PERMISSION_GRANTED){
-            GetAllContacts();
-        }else{
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS},2); // ask permission for send SMS
-        }*/
 
     }
 
@@ -205,15 +180,6 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-  /*
-    public static Contact SearchByPhone(ArrayList<Chat> chats, String phoneNum) {
-        for (Chat c:chats) {
-            if(PhoneNumberUtils.compare(c.getPhoneNumber(),phoneNum)) { // equal phone numbers by android package
-                return c;
-            }
-        }
-        return null;
-    }*/
 
     public void toChooseChat(View v){
         Intent intent=new Intent(this,ChooseChatActivity.class);

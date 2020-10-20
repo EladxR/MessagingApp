@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,8 +16,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
@@ -35,7 +32,6 @@ public class PhoneLoginActivity extends AppCompatActivity
     private ProgressDialog loadingBar;
 
     private String mVerificationId;
-    private PhoneAuthProvider.ForceResendingToken mResendToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -131,7 +127,7 @@ public class PhoneLoginActivity extends AppCompatActivity
             {
                 // Save verification ID and resending token so we can use them later
                 mVerificationId = verificationId;
-                mResendToken = token;
+
 
 
                 Toast.makeText(PhoneLoginActivity.this, "Code has been sent, please check and verify...", Toast.LENGTH_SHORT).show();
